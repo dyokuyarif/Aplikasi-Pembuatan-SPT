@@ -28,7 +28,7 @@
             justify-content: center;
             align-items: center;
             height: 90vh;
-            transition: opacity 0.4s ease, transform 0.4s ease; /* Transisi Fade */
+            transition: opacity 0.4s ease, transform 0.4s ease;
         }
         .login-box {
             background: #fff;
@@ -73,7 +73,7 @@
             opacity: 0.8;
         }
 
-        /* Animasi Spinner Loader saat klik login */
+        /* Animasi Spinner Loader */
         .loader-spinner {
             display: inline-block;
             width: 16px;
@@ -260,17 +260,23 @@
 <div id="loginPage">
     <div class="login-box">
         <h3>🔑 Login BPBD SPT</h3>
-        <div class="form-group">
-            <label>Username (NIP)</label>
-            <input type="text" id="loginUsername" placeholder="Masukkan NIP">
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="Masukkan Password">
-        </div>
-        <button class="btn-submit" onclick="prosesLogin()" id="btnMasuk">
-            <span id="btnText">Masuk</span>
-        </button>
+        <!-- PENGGUNAAN TAG FORM AGAR BROWSER MENYIMPAN AUTOFILL -->
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+            <div class="form-group">
+                <label>Username (NIP)</label>
+                <!-- Tambah atribut name dan autocomplete -->
+                <input type="text" id="loginUsername" name="username" autocomplete="username" placeholder="Masukkan NIP" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <!-- Tambah atribut name dan autocomplete -->
+                <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="Masukkan Password" required>
+            </div>
+            <!-- Ubah menjadi type="submit" -->
+            <button type="submit" class="btn-submit" id="btnMasuk">
+                <span id="btnText">Masuk</span>
+            </button>
+        </form>
         <p id="loginError" style="color:red; font-size:13px; margin-top:10px; display:none;">Username atau Password salah!</p>
     </div>
 </div>
@@ -295,20 +301,23 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModalPassword()">&times;</span>
             <h3 style="margin-top:0; color:var(--primary);">Ganti Password</h3>
-            <div class="form-group">
-                <label>Password Lama</label>
-                <input type="password" id="oldPassword">
-            </div>
-            <div class="form-group">
-                <label>Password Baru</label>
-                <input type="password" id="newPassword">
-            </div>
-            <div class="form-group">
-                <label>Konfirmasi Password Baru</label>
-                <input type="password" id="confirmPassword">
-            </div>
-            <button class="btn-submit" onclick="simpanPassword()">Simpan Perubahan</button>
-            <p id="pwdMsg" style="font-size:13px; margin-top:10px;"></p>
+            <!-- Form agar browser bisa memperbarui password di autofill -->
+            <form onsubmit="handleUbahPassword(event)">
+                <div class="form-group">
+                    <label>Password Lama</label>
+                    <input type="password" id="oldPassword" name="old-password" autocomplete="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label>Password Baru</label>
+                    <input type="password" id="newPassword" name="new-password" autocomplete="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label>Konfirmasi Password Baru</label>
+                    <input type="password" id="confirmPassword" name="confirm-password" autocomplete="new-password" required>
+                </div>
+                <button type="submit" class="btn-submit">Simpan Perubahan</button>
+                <p id="pwdMsg" style="font-size:13px; margin-top:10px;"></p>
+            </form>
         </div>
     </div>
 
@@ -429,17 +438,12 @@
             currentUser = loggedIn;
             tampilkanAplikasiInstan();
         }
-
-        // --- TAMBAHAN EVENT ENTER UNTUK FORM LOGIN ---
-        document.getElementById('loginUsername').addEventListener("keypress", function(event) {
-            if (event.key === "Enter") { event.preventDefault(); prosesLogin(); }
-        });
-        document.getElementById('loginPassword').addEventListener("keypress", function(event) {
-            if (event.key === "Enter") { event.preventDefault(); prosesLogin(); }
-        });
     }
 
-    function prosesLogin() {
+    // Fungsi Submit dipanggil saat tombol submit form ditekan atau tombol enter di dalam form
+    function handleLoginSubmit(event) {
+        event.preventDefault(); // Mencegah browser me-reload halaman
+        
         let u = document.getElementById('loginUsername').value.trim();
         let p = document.getElementById('loginPassword').value;
         let err = document.getElementById('loginError');
@@ -459,7 +463,7 @@
                 currentUser = u;
                 tampilkanAplikasi();
                 
-                // Kembalikan tombol ke keadaan semula saat diam-diam hilang
+                // Kembalikan tombol ke keadaan semula
                 setTimeout(() => {
                     btn.disabled = false;
                     btnText.innerHTML = "Masuk";
@@ -533,7 +537,10 @@
         document.getElementById('modalPassword').style.display = 'none';
     }
 
-    function simpanPassword() {
+    // Fungsi Form Submit Ubah Password
+    function handleUbahPassword(event) {
+        event.preventDefault(); // Mencegah form me-reload
+
         let old = document.getElementById('oldPassword').value;
         let newP = document.getElementById('newPassword').value;
         let conf = document.getElementById('confirmPassword').value;
