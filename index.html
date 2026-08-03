@@ -337,6 +337,25 @@
             cursor: pointer;
         }
         .btn-table-action:hover { background-color: #5e54c8; }
+        
+        /* Indikator Online */
+        .badge-online {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #28c76f;
+            border-radius: 50%;
+            margin-right: 5px;
+            box-shadow: 0 0 4px #28c76f;
+        }
+        .badge-offline {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #adb5bd;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
 
         @media (max-width: 768px) {
             .navbar { flex-direction: column; gap: 15px; align-items: flex-start; }
@@ -421,12 +440,22 @@
 
     <!-- PANEL ADMIN MODAL -->
     <div id="modalAdmin" class="modal">
-        <div class="modal-content" style="width: 700px;">
+        <div class="modal-content" style="width: 750px;">
             <span class="close-btn" onclick="closeAdminModal()">&times;</span>
             <h3 style="margin-top:0; color:var(--primary);">⚙️ Panel Admin BPBD</h3>
             
             <div style="margin-bottom: 20px; background: #e8f4fd; padding: 10px; border-radius: 4px; font-size: 13px;">
                 📂 Penyimpanan Google Drive: <a href="https://drive.google.com/drive/folders/17v2EKqX3GfDdrrbWo6r-5FiDq06qv4qI?usp=drive_link" target="_blank" style="color: #007bff; font-weight: bold;">Buka Folder Google Drive</a>
+            </div>
+
+            <h4 style="margin-bottom: 5px;">Daftar Pengguna & Status Online</h4>
+            <div style="max-height: 180px; overflow-y: auto; margin-bottom: 20px;">
+                <table class="admin-table" id="adminUserTable">
+                    <thead>
+                        <tr><th>NIP</th><th>Nama</th><th>Status</th><th>Aksi</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
 
             <h4 style="margin-bottom: 5px;">Tambah User Baru</h4>
@@ -447,18 +476,8 @@
             </form>
             <p id="adminUserMsg" style="font-size:12px; margin-top:-10px; margin-bottom:15px;"></p>
 
-            <h4 style="margin-bottom: 5px;">Daftar Pengguna & Reset Password</h4>
-            <div style="max-height: 150px; overflow-y: auto; margin-bottom: 20px;">
-                <table class="admin-table" id="adminUserTable">
-                    <thead>
-                        <tr><th>NIP</th><th>Nama</th><th>Aksi</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
             <h4 style="margin-bottom: 5px;">Riwayat Ekspor User Lainnya</h4>
-            <div style="max-height: 180px; overflow-y: auto;">
+            <div style="max-height: 160px; overflow-y: auto;">
                 <table class="admin-table" id="adminExportTable">
                     <thead>
                         <tr><th>Waktu</th><th>User (Pembuat)</th><th>Nama File</th><th>Aksi</th></tr>
@@ -621,10 +640,25 @@
         let loggedIn = sessionStorage.getItem('bpbdSession');
         if (loggedIn && usersDB[loggedIn]) {
             currentUser = loggedIn;
+            updateHeartbeat();
             tampilkanAplikasiInstan();
         } else {
             document.getElementById('loginPage').style.display = 'flex';
         }
+
+        // Interval untuk kirim heartbeat (tanda aktif) setiap 10 detik
+        setInterval(() => {
+            if (currentUser) {
+                updateHeartbeat();
+            }
+        }, 10000);
+    }
+
+    function updateHeartbeat() {
+        if (!currentUser) return;
+        let onlineMap = JSON.parse(localStorage.getItem('bpbdOnlineUsers') || '{}');
+        onlineMap[currentUser] = Date.now();
+        localStorage.setItem('bpbdOnlineUsers', JSON.stringify(onlineMap));
     }
 
     function handleLoginSubmit(event) {
@@ -644,6 +678,7 @@
             setTimeout(() => {
                 sessionStorage.setItem('bpbdSession', u);
                 currentUser = u;
+                updateHeartbeat();
                 tampilkanAplikasi();
                 
                 setTimeout(() => {
@@ -658,6 +693,12 @@
     }
 
     function prosesLogout() {
+        if (currentUser) {
+            let onlineMap = JSON.parse(localStorage.getItem('bpbdOnlineUsers') || '{}');
+            delete onlineMap[currentUser];
+            localStorage.setItem('bpbdOnlineUsers', JSON.stringify(onlineMap));
+        }
+        
         sessionStorage.removeItem('bpbdSession');
         currentUser = null;
         document.getElementById('loginUsername').value = "";
@@ -808,11 +849,23 @@
     function loadAdminUsersTable() {
         let tbody = document.querySelector('#adminUserTable tbody');
         tbody.innerHTML = "";
+        
+        let onlineMap = JSON.parse(localStorage.getItem('bpbdOnlineUsers') || '{}');
+        let now = Date.now();
+        // Dianggap online jika aktif dalam 30 detik terakhir (atau heartbeat terakhir)
+        const TIMEOUT_ONLINE = 30000; 
+
         for (let nip in usersDB) {
+            let lastActive = onlineMap[nip] || 0;
+            let isOnline = (now - lastActive) < TIMEOUT_ONLINE;
+
             let tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${nip}</td>
                 <td>${usersDB[nip].name} ${nip === ADMIN_NIP ? '⭐ (Admin)' : ''}</td>
+                <td>
+                    ${isOnline ? '<span class="badge-online"></span><span style="color:#28c76f; font-weight:bold;">Online</span>' : '<span class="badge-offline"></span><span style="color:#6c757d;">Offline</span>'}
+                </td>
                 <td>${nip !== ADMIN_NIP ? `<button class="btn-table-action" onclick="resetUserPassword('${nip}')">Reset Pass</button>` : '-'}</td>
             `;
             tbody.appendChild(tr);
