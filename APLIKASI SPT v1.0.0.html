@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Pembuatan Surat Tugas BPBD</title>
+    <style>
+        :root {
+            --primary: #7367F0;
+            --primary-hover: #5e54c8;
+            --border: #e9ecef;
+            --text-main: #333;
+            --text-muted: #6c757d;
+            --bg-light: #f8f9fa;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-main);
+            background-color: #f4f5f7;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        /* --- LOGIN & MODAL STYLES --- */
+        #loginPage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+        }
+        .login-box {
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-box h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .btn-submit {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        /* Navbar / Header Profil */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .navbar h2 {
+            color: var(--primary);
+            margin: 0;
+        }
+        .profile-menu {
+            position: relative;
+            display: inline-block;
+        }
+        .profile-btn {
+            background-color: #fff;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #fff;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .profile-menu:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Modal Ganti Password */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 10; 
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 8px;
+            width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: black; }
+
+        /* --- APP STYLES --- */
+        .container {
+            background: #fff;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .row-section {
+            display: flex;
+            padding: 20px 0;
+            border-bottom: 1px dashed var(--border);
+            gap: 20px;
+        }
+        .row-section:last-child { border-bottom: none; }
+        .left-col { width: 250px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+        .left-col h4 { margin: 0 0 5px 0; font-size: 15px; display: flex; align-items: center; }
+        .required { color: red; margin-left: 5px; }
+        .right-col { flex-grow: 1; display: flex; flex-direction: column; gap: 15px; }
+        
+        .btn-add {
+            background-color: var(--primary);
+            color: white; border: none; padding: 8px 12px; border-radius: 4px;
+            cursor: pointer; font-size: 13px; font-weight: 600; display: inline-block;
+        }
+        .btn-add:hover { background-color: var(--primary-hover); }
+        .btn-template {
+            background-color: #00cfdd; color: white; border: none; padding: 8px 12px; border-radius: 4px;
+            cursor: pointer; font-size: 13px; font-weight: 600; display: inline-block;
+        }
+        .btn-template:hover { background-color: #00b5c2; }
+        .btn-remove {
+            background-color: #ff4d4f; color: white; border: none; padding: 10px 15px;
+            border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        
+        .export-group { display: flex; gap: 15px; margin-top: 30px; }
+        .btn-export {
+            background-color: #28c76f; color: white; border: none; padding: 15px 25px;
+            border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
+            flex: 1; box-shadow: 0 4px 6px rgba(40, 199, 111, 0.2); text-align: center;
+        }
+        .btn-export:hover { background-color: #24b263; }
+
+        input[type="text"], input[type="password"], input[type="date"], textarea, select {
+            width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 4px;
+            font-family: inherit; box-sizing: border-box; font-size: 14px;
+        }
+        textarea { resize: vertical; min-height: 60px; }
+        .dynamic-item { display: flex; gap: 10px; align-items: flex-start; }
+        .dynamic-item textarea, .dynamic-item input { flex-grow: 1; }
+        
+        .pegawai-card {
+            background-color: var(--bg-light); border: 1px solid var(--border); padding: 15px; border-radius: 6px;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .grid-1 { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+        .col-span-2 { grid-column: span 2; }
+        .info-text { font-size: 12px; color: var(--text-muted); margin-top: 5px; display: block; }
+        .hidden { display: none !important; }
+        .flex-row { display: flex; gap: 15px; }
+        .flex-col { flex: 1; }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .row-section { flex-direction: column; gap: 10px; padding: 15px 0; }
+            .left-col { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HALAMAN LOGIN -->
+<div id="loginPage">
+    <div class="login-box">
+        <h3>🔑 Login BPBD SPT</h3>
+        <div class="form-group">
+            <label>Username (NIP)</label>
+            <input type="text" id="loginUsername" placeholder="Masukkan NIP">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="Masukkan Password">
+        </div>
+        <button class="btn-submit" onclick="prosesLogin()">Masuk</button>
+        <p id="loginError" style="color:red; font-size:13px; margin-top:10px; display:none;">Username atau Password salah!</p>
+    </div>
+</div>
+
+<!-- HALAMAN APLIKASI UTAMA -->
+<div class="container" id="appPage" style="display: none;">
+    <div class="navbar">
+        <h2>Aplikasi Pengisi Data Surat Tugas</h2>
+        <div class="profile-menu">
+            <button class="profile-btn">
+                👤 <span id="displayName">Nama Profil</span> ▾
+            </button>
+            <div class="dropdown-content">
+                <a onclick="showModalPassword()">Ganti Password</a>
+                <a onclick="prosesLogout()" style="color: #ff4d4f; font-weight: bold;">Log Out</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GANTI PASSWORD -->
+    <div id="modalPassword" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModalPassword()">&times;</span>
+            <h3 style="margin-top:0; color:var(--primary);">Ganti Password</h3>
+            <div class="form-group">
+                <label>Password Lama</label>
+                <input type="password" id="oldPassword">
+            </div>
+            <div class="form-group">
+                <label>Password Baru</label>
+                <input type="password" id="newPassword">
+            </div>
+            <div class="form-group">
+                <label>Konfirmasi Password Baru</label>
+                <input type="password" id="confirmPassword">
+            </div>
+            <button class="btn-submit" onclick="simpanPassword()">Simpan Perubahan</button>
+            <p id="pwdMsg" style="font-size:13px; margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <!-- FORM SPT -->
+    <div class="row-section">
+        <div class="left-col">
+            <h4>📄 Dasar <span class="required">*</span></h4>
+            <button class="btn-template" onclick="loadTemplateDasar()">+ Template Otomatis</button>
+            <button class="btn-add" onclick="addDasar()">+ Manual</button>
+        </div>
+        <div class="right-col" id="containerDasar">
+            <div class="dynamic-item">
+                <textarea class="input-dasar" placeholder="Masukkan Dasar Pelaksanaan SPT..." required></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="row-section">
+        <div class="left-col">
+            <h4>👥 Kepada / Pegawai <span class="required">*</span></h4>
+            <button class="btn-add" onclick="addPegawai()">+ Tambah Pegawai</button>
+        </div>
+        <div class="right-col" id="containerPegawai"></div>
+    </div>
+
+    <div class="row-section">
+        <div class="left-col">
+            <h4>🎯 Untuk (Tujuan Tugas) <span class="required">*</span></h4>
+            <button class="btn-add" onclick="addUntuk()">+ Tambah Tujuan</button>
+        </div>
+        <div class="right-col" id="containerUntuk">
+            <div class="dynamic-item">
+                <textarea class="input-untuk" placeholder="Masukkan tujuan perjalanan secara jelas..." required></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="row-section">
+        <div class="left-col">
+            <h4>📍 Lokasi Tujuan <span class="required">*</span></h4>
+            <span class="info-text">Alamat/Tempat yang dikunjungi</span>
+        </div>
+        <div class="right-col">
+            <input type="text" id="lokasiTujuan" placeholder="Ketik lokasi (Misal: Kantor Wali Kota Binjai Jl. Jendral Sudirman...)" required>
+        </div>
+    </div>
+    
+    <div class="row-section">
+        <div class="left-col">
+            <h4>📌 Tujuan Singkat <span class="required">*</span></h4>
+            <span class="info-text">Hanya untuk penamaan file unduhan (Tanpa alamat detail)</span>
+        </div>
+        <div class="right-col">
+            <input type="text" id="tujuanSingkatFile" placeholder="Contoh: Binjai, Jakarta, Medan..." required>
+        </div>
+    </div>
+
+    <div class="row-section">
+        <div class="left-col">
+            <h4>📅 Tanggal Pelaksanaan <span class="required">*</span></h4>
+        </div>
+        <div class="right-col">
+            <div class="flex-row">
+                <div class="flex-col">
+                    <label style="font-size:13px;">Tanggal Mulai</label>
+                    <input type="date" id="tglMulai" onchange="prosesRentangTanggal()">
+                </div>
+                <div class="flex-col">
+                    <label style="font-size:13px;">Tanggal Selesai</label>
+                    <input type="date" id="tglSelesai" onchange="prosesRentangTanggal()">
+                </div>
+            </div>
+            <div class="flex-row">
+                <div class="flex-col">
+                    <label style="font-size:13px;">Keterangan Format Teks (Otomatis)</label>
+                    <input type="text" id="hasilHari" placeholder="Otomatis terisi..." readonly style="background-color: #e9ecef;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="export-group">
+        <button class="btn-export" onclick="generateDoc()">Unduh Word (.doc)</button>
+    </div>
+
+</div>
+
+<script>
+    // --- SISTEM AUTHENTIKASI & DATABASE LOKAL ---
+    const defaultAccounts = {
+        "199905292025211005": { pass: "bid1pk", name: "Dimas" },
+        "199504092025212086": { pass: "bid1pk", name: "Desti" },
+        "199603252025212090": { pass: "bid1pk", name: "Dila" },
+        "199410202025212090": { pass: "bid1pk", name: "Intan" },
+        "199912052025212034": { pass: "bid1pk", name: "Ayu" },
+        "198607092025212060": { pass: "bid1pk", name: "Naomy" },
+        "199809242025212058": { pass: "bid1pk", name: "Dinda" },
+        "199508302025212076": { pass: "bid1pk", name: "Gita" },
+        "199412092025211098": { pass: "bid1pk", name: "Riduan" }
+    };
+
+    let usersDB = {};
+    let currentUser = null;
+
+    function initApp() {
+        let storedUsers = localStorage.getItem('bpbdUsers');
+        if (!storedUsers) {
+            usersDB = defaultAccounts;
+            localStorage.setItem('bpbdUsers', JSON.stringify(usersDB));
+        } else {
+            usersDB = JSON.parse(storedUsers);
+        }
+
+        let loggedIn = sessionStorage.getItem('bpbdSession');
+        if (loggedIn && usersDB[loggedIn]) {
+            currentUser = loggedIn;
+            tampilkanAplikasi();
+        }
+    }
+
+    function prosesLogin() {
+        let u = document.getElementById('loginUsername').value.trim();
+        let p = document.getElementById('loginPassword').value;
+        let err = document.getElementById('loginError');
+        
+        if (usersDB[u] && usersDB[u].pass === p) {
+            sessionStorage.setItem('bpbdSession', u);
+            currentUser = u;
+            err.style.display = 'none';
+            tampilkanAplikasi();
+        } else {
+            err.style.display = 'block';
+        }
+    }
+
+    function prosesLogout() {
+        sessionStorage.removeItem('bpbdSession');
+        currentUser = null;
+        document.getElementById('loginUsername').value = "";
+        document.getElementById('loginPassword').value = "";
+        document.getElementById('appPage').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+    }
+
+    function tampilkanAplikasi() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('appPage').style.display = 'block';
+        document.getElementById('displayName').innerText = usersDB[currentUser].name;
+    }
+
+    function showModalPassword() {
+        document.getElementById('modalPassword').style.display = 'flex';
+        document.getElementById('pwdMsg').innerText = "";
+        document.getElementById('oldPassword').value = "";
+        document.getElementById('newPassword').value = "";
+        document.getElementById('confirmPassword').value = "";
+    }
+
+    function closeModalPassword() {
+        document.getElementById('modalPassword').style.display = 'none';
+    }
+
+    function simpanPassword() {
+        let old = document.getElementById('oldPassword').value;
+        let newP = document.getElementById('newPassword').value;
+        let conf = document.getElementById('confirmPassword').value;
+        let msg = document.getElementById('pwdMsg');
+
+        if (usersDB[currentUser].pass !== old) {
+            msg.innerText = "Password lama salah!";
+            msg.style.color = "red";
+            return;
+        }
+        if (newP.length < 4) {
+            msg.innerText = "Password baru minimal 4 karakter!";
+            msg.style.color = "red";
+            return;
+        }
+        if (newP !== conf) {
+            msg.innerText = "Konfirmasi password tidak cocok!";
+            msg.style.color = "red";
+            return;
+        }
+
+        usersDB[currentUser].pass = newP;
+        localStorage.setItem('bpbdUsers', JSON.stringify(usersDB));
+        msg.innerText = "Password berhasil diubah!";
+        msg.style.color = "green";
+        setTimeout(closeModalPassword, 1500);
+    }
+
+
+    // --- DATA PEGAWAI & LOGIKA APLIKASI SURAT TUGAS ---
+    const dataPegawai = {"asn": [{"nama": "Tuahta Ramajaya Saragih, AP, M.Si", "pangkat": "Pembina Utama Madya/IV.d", "nip": "19760808 199511 1 001", "jabatan": "Kepala Badan"}, {"nama": "Ir. Herianto, M.Si", "pangkat": "Pembina Utama Muda/IV.c", "nip": "19690731 199403 1 003", "jabatan": "Sekretaris"}, {"nama": "Manutur Parulian Naibaho, S.Sos., S.H.,M.Si", "pangkat": "Pembina Utama Muda/IV.c", "nip": "19681102 199009 1 003", "jabatan": "Kabid. Pencegahan dan Kesiapsiagaan"}, {"nama": "Sri Wahyuni Pancasilawati, SP, M.Si", "pangkat": "Pembina Utama Muda/IV.c", "nip": "19720601 199803 2 001", "jabatan": "Kabid. Penanganan Darurat, Peralatan dan Logistik"}, {"nama": "Zulham Efendi Siregar, ST, S.H, M.H", "pangkat": "Pembina Tk. I/IV.b", "nip": "19791220 200312 1 004", "jabatan": "Kabid. Rehabilitasi dan Rekonstruksi"}, {"nama": "Robert Efendi Purba, SH", "pangkat": "Pembina/IV.a", "nip": "19720829 199203 1 002", "jabatan": "Kabid. Kerjasama, Pengendalian dan Evaluasi"}, {"nama": "Alamsyah, S.Pd.I, M.Si", "pangkat": "Pembina/IV.a", "nip": "19690815 199008 1 002", "jabatan": "Analis Kebencanaan Ahli Muda"}, {"nama": "Bintang Hartini Nataria, S.Pi, M.Si", "pangkat": "Pembina/IV.a", "nip": "19760708 200604 2 002", "jabatan": "Analis Kebencanaan Ahli Muda"}, {"nama": "Fahruddin, SE, MM", "pangkat": "Pembina/IV.a", "nip": "19810313 201001 1 012", "jabatan": "Kasubbag Umum dan Kepegawaian"}, {"nama": "Maruhum Simbolon, SH, MIP", "pangkat": "Penata Tk. I/III.d", "nip": "19690515 200701 1 006", "jabatan": "Analis Kebencanaan Ahli Muda"}, {"nama": "Muhammad Ridwan, ST", "pangkat": "Penata Tk. I/III.d", "nip": "19750928 200604 1 005", "jabatan": "Analis Kebencanaan Ahli Muda"}, {"nama": "Togi Roy Ronald Pasaribu, SP", "pangkat": "Penata Tk. I/III.d", "nip": "19801015 200604 1 006", "jabatan": "Analis Kebencanaan Ahli Muda"}, {"nama": "M. Fazlur Rahman Daulay, SE, MM", "pangkat": "Penata Tk. I/III.d", "nip": "19850130 201101 1 011", "jabatan": "Analis Kebencanaan Ahli Muda"}, {"nama": "Rahman Rejeki, S.Pd, M.AP", "pangkat": "Pembina/IV.a", "nip": "19810905 200903 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Yulianto, SE", "pangkat": "Penata Tk. I/III.d", "nip": "19690604 200701 1 008", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Ahmad Syafei, SE", "pangkat": "Penata Tk. I/III.d", "nip": "19721201 200701 1 007", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Husni Sinaga, SE", "pangkat": "Penata Tk. I/III.d", "nip": "19801121 200805 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Idham Lubis, SH", "pangkat": "Penata Tk. I/III.d", "nip": "19771226 199903 1 002", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Oki Mufti Perdana Pane, SE", "pangkat": "Penata Tk. I/III.d", "nip": "19790613 200902 1 002", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Arwanda Ginting, S.Kom", "pangkat": "Penata /III.c", "nip": "19790328 201001 1 009", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Teguh Wigunardi", "pangkat": "Penata Muda Tk. I/III.b", "nip": "19860107 200604 1 005", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Penriswan Lubis, S.Pdi", "pangkat": "Penata Muda/III.a", "nip": "19750204 200801 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Rido Prayetno", "pangkat": "Penata Muda/III.a", "nip": "19751217 200701 1 002", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "M. Amin", "pangkat": "Penata Muda/III.a", "nip": "19771109 200801 1 001", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Wandi", "pangkat": "Penata Muda/III.a", "nip": "19830517 200801 1 001", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Efendi J.H. Silaban, S.Kom", "pangkat": "Penata Muda/III.a", "nip": "19920822 202504 1 003", "jabatan": "Penata Pengelola Sistem dan Teknologi informasi"}, {"nama": "Rahman Yusuf, ST", "pangkat": "Penata Muda/III.a", "nip": "19970621 202504 1 003", "jabatan": "Analis Kebencanaan Ahli Pertama"}, {"nama": "Daniel Dachi", "pangkat": "Pengatur Tk. I/II.d", "nip": "19761013 200502 1 001", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Alamsyah Putra, A.Md", "pangkat": "VII", "nip": "19890204 202521 1 007", "jabatan": "Pengelola Layanan Operasional"}, {"nama": "Rianto", "pangkat": "V", "nip": "19790325 202521 1 011", "jabatan": "Operator Layanan Operasional"}, {"nama": "Meldawati Silalahi", "pangkat": "V", "nip": "19810104 202521 2 013", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Jostra Nicolas Cevin Sinulingga", "pangkat": "V", "nip": "19940717 202521 1 025", "jabatan": "Operator Layanan Operasional"}, {"nama": "Afdoli, AP, M.Si", "pangkat": "Pembina Tk. I/IV.b", "nip": "19770106 199511 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Hendra Edisa Putra, AP, MM", "pangkat": "Pembina Tk. I/IV.b", "nip": "19770403 199612 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Sofian, ST", "pangkat": "Penata Tk. I/III.d", "nip": "19820303 201101 1 004", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Helmi Suhairi, SE", "pangkat": "Penata /III.c", "nip": "19791004 200801 1 001", "jabatan": "Penata Layanan Operasional"}, {"nama": "Agung Syahputra Lubis, A.Md", "pangkat": "Penata Muda Tk. I/III.b", "nip": "19770101 201101 1 003", "jabatan": "Pengolah Data dan Informasi"}, {"nama": "Cilvera Harahap, A.Md", "pangkat": "Penata Muda/III.a", "nip": "19801003 200902 2 003", "jabatan": "Pengolah Data dan Informasi"}, {"nama": "Erick Sanjaya, ST", "pangkat": "Penata Muda/III.a", "nip": "19901226 202504 1 001", "jabatan": "Penata Penanggulangan Bencana Ahli Pertama"}, {"nama": "Muhammad Dimas Syahputra", "pangkat": "V", "nip": "19990529 202521 1 005", "jabatan": "Operator Layanan Operasional"}, {"nama": "Khaidir Sinaga, A.P", "pangkat": "Pembina/IV.a", "nip": "19750527 199412 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Prapanca Ginting, ST", "pangkat": "Penata Tk. I/III.d", "nip": "19690424 199003 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Normanti Berutu, S.Sos", "pangkat": "Penata Tk. I/III.d", "nip": "19750823 200604 2 003", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Joni", "pangkat": "Penata Muda/III.a", "nip": "19780903 200801 1 001", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Robby Fiqry Maulana, ST", "pangkat": "Penata Muda/III.a", "nip": "19970827 202504 1 002", "jabatan": "Analis Kebencanaan Ahli Pertama"}, {"nama": "Lestari Hutabarat, ST", "pangkat": "Penata Muda/III.a", "nip": "20000831 202504 2 003", "jabatan": "Penata Penanggulangan Bencana Ahli Pertama"}, {"nama": "Rusmawati", "pangkat": "V", "nip": "19690628 202521 2 003", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Vutry Maria S., SKM, M.Kes", "pangkat": "Pembina/IV.a", "nip": "19870113 201101 2 003", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Irwanto, SE", "pangkat": "Penata /III.c", "nip": "19720228 200901 1 003", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Yennie Elfrida M.Silaen, A.Md", "pangkat": "Penata /III.c", "nip": "19830219 201001 2 015", "jabatan": "Pengelola Data dan Informasi"}, {"nama": "Ade Fitriah", "pangkat": "Penata Muda Tk. I/III.b", "nip": "19681223 199103 2 003", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Atofona Laia, SE", "pangkat": "Penata Muda/III.a", "nip": "19691002 200701 1 002", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Ribka Amelia Manalu, ST", "pangkat": "Penata Muda/III.a", "nip": "20020418 202504 2 007", "jabatan": "Penata Penanggulangan Bencana Ahli Pertama"}, {"nama": "Dian Utami Putri", "pangkat": "V", "nip": "19941102 202521 2 019", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Darussamin Nasution, S.Sos", "pangkat": "Penata Tk. I/III.d", "nip": "19700505 199303 1 007", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Elfrida, S.Sos", "pangkat": "Penata Tk. I/III.d", "nip": "19780325 200502 2 002", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Syahrul Ramadhan, ST", "pangkat": "Penata Tk. I/III.d", "nip": "19800808 200803 1 001", "jabatan": "Penelaah Teknis Kebijakan"}, {"nama": "Darmadi", "pangkat": "Penata Muda/III.a", "nip": "19731122 200701 1 004", "jabatan": "Pengadministrasi Perkantoran"}, {"nama": "Nurwinda Sari, ST", "pangkat": "Penata Muda/III.a", "nip": "19950523 202504 2 003", "jabatan": "Analis Kebencanaan Ahli Pertama"}, {"nama": "Kania Prima Dita", "pangkat": "V", "nip": "19980606 202521 2 011", "jabatan": "Pengadministrasi Perkantoran"}], "pppk": [{"nama": "ABDI KHAIRI", "nip": "19960108 202521 1 077", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ABDUL GANI, S.Pd", "nip": "19930404 202521 1 120", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ABDULLAH SENANG", "nip": "19830218 202521 1 059", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ABI PRATAMA", "nip": "19870819 202521 1 086", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "AGUS ANANDA PERDANA, S.T.", "nip": "19950823 202521 1 063", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "AGUS ZAINAL, S.H.", "nip": "19810810 202521 1 093", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "AHADI AHMAD, S.E.", "nip": "19851224 202521 1 094", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "AHMAD AL HAMDI RANGKUTI, S.T", "nip": "19940315 202521 1 139", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "AHMAD JUANDA BARUS, S.Kom", "nip": "19931115 202521 1 076", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "AHMAD RIVAI SAGALA, S.Pd.", "nip": "19900413 202521 1 098", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "AHMAD TOMUAN LUBIS", "nip": "19950702 202521 1 086", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ALEKSANDER FIRDAUST SEMBIRING", "nip": "19840504 202521 1 106", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ALWANDA YAFANSYAH, A.Md.T", "nip": "19990807 202521 2 053", "jabatan": "PENGELOLA LAYANAN OPERASIONAL"}, {"nama": "ANDAR SAHALA HALOMOAN LUMBAN TOBING, S.Sos.", "nip": "19880502 202521 1 159", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ANDRI RINALDY HALIM SIMANGUNSONG", "nip": "19951128 202521 1 092", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ANIS ANGGRAINI SIREGAR, S.Pd.", "nip": "19970321 202521 2 093", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ANISAH ULFI SIREGAR, S.Pd.", "nip": "19960826 202521 2 074", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ARMITA RIANA S", "nip": "19841208 202521 2 042", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ASTRI SUCI ANANDA, S.E.", "nip": "19861007 202521 2 085", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "AYU ASRIKA, A.Md.T.", "nip": "19991205 202521 2 034", "jabatan": "PENGELOLA LAYANAN OPERASIONAL"}, {"nama": "BENGET PARNINGOTAN SIANIPAR, S.Kep, Ners", "nip": "19930417 202521 1 092", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "BOAS HUTABARAT", "nip": "19980729 202521 1 043", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "BRILYAN DANA FAHLI SIREGAR, S.Pd.", "nip": "19900210 202521 1 125", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "BUNGA OCTAVIANI RANTI, S.Sos.", "nip": "19931004 202521 2 062", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "DERMAWAN SYAHRAINI", "nip": "19880323 202521 1 116", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "DESTI APRIANI, S.K.M.", "nip": "19950409 202521 2 086", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "DIAN TUN WIGA, S.ST.", "nip": "19950816 202521 2 100", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "DINDA ALYA NOVIA", "nip": "19971110 202521 2 088", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "DINDA LESTARI", "nip": "19980924 202521 2 058", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "dr. HABIBAH NOVITASARI LUBIS", "nip": "19911114 202521 2 086", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "DWI MUTIA NADHIRA, S.AB.", "nip": "19910704 202521 2 113", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "EDI PERWIRA GINTING, S.H", "nip": "19910404 202521 1 115", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ERY AMANDA", "nip": "19780502 202521 1 104", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "FADLY YUSUF NASUTION, S.E", "nip": "19980423 202521 1 043", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FAISAL AZIS BANGUN, S.E.", "nip": "19911129 202521 1 089", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FAKHRI MAULANA POHAN", "nip": "19920123 202521 1 073", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "FANNY KHAIRUNNISA, S.T.", "nip": "19921219 202521 2 068", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FARIZ ADLI, S.Pd.", "nip": "19941228 202521 1 073", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FAUZUL AFKAR RITONGA, S. Kom", "nip": "19910709 202521 1 105", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FEBRI KURNIAWAN", "nip": "19930214 202521 1 072", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "FERDI SAID", "nip": "20001207 202521 1 027", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "FERNANDO BANGUN, SE.", "nip": "19890610 202521 1 132", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FIFI FEBRIANA BR MELIALA, S.AB.", "nip": "19910227 202521 2 060", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FIKA AZURA, S.Pd.", "nip": "19940328 202521 2 097", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "FITRAH NAZIP", "nip": "19940528 202521 1 084", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "GITA AGUSTINA HUTASUHUT, S.H.", "nip": "19950830 202521 2 076", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "HADIST ELFITRI YANI BR. BARUS, S.Pd.", "nip": "19970209 202521 2 077", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "HENDRO PURWADI", "nip": "19800119 202521 1 038", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "HERIN UMRI PRATAMA", "nip": "19920225 202521 1 096", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "IBNU KHAIDIR, S.Kom.", "nip": "19930424 202521 1 106", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ICHRAM NASUTION, S.E.", "nip": "19910818 202521 1 101", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "IKA BELLA", "nip": "20000802 202521 2 038", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "IKHSAN FAHRIZA, A.Md", "nip": "19960606 202521 1 146", "jabatan": "PENGELOLA LAYANAN OPERASIONAL"}, {"nama": "ILHAM TIO RAMADHAN PASARIBU", "nip": "19980117 202521 1 059", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "IMAN INSARI, A.Md.Par", "nip": "19870920 202521 1 117", "jabatan": "PENGELOLA LAYANAN OPERASIONAL"}, {"nama": "IMAN JOSUA OKTANAEL", "nip": "19981016 202521 1 039", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "INDRA GUNAWAN, S.H.", "nip": "19820908 202521 1 083", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "INDRIAYU HANDAYANI TAUFIK", "nip": "19850727 202521 2 078", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "INTAN PERMATA SARI, S.I.Kom.", "nip": "19941020 202521 2 090", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "IRVAN", "nip": "20000702 202521 1 034", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ISMI HUMAIRA, S.Ak", "nip": "19950908 202521 2 132", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "JUNAIDI SITEPU, S.Pd.", "nip": "19930619 202521 1 086", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "KAVRI RIZKI", "nip": "19880114 202521 1 064", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "LISA NOVIANTI SIREGAR, S.Pd.", "nip": "19941205 202521 2 099", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "M. AIDIL FADLI", "nip": "19930602 202521 1 111", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "M. AZMI AZHAR, S.M.", "nip": "19950710 202521 1 088", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "M. RIDUAN S, S.Pd.", "nip": "19941209 202521 1 098", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "M. YANI YAS'A SIREGAR", "nip": "19910625 202521 1 104", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "M.ANANDA AZHARI SIREGAR", "nip": "20000625 202521 1 034", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "M.HENDRIANSYAH", "nip": "19970517 202521 1 066", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "MELATI INDAH SARI S", "nip": "19930514 202521 2 099", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "MHD ADITYA DARMAWAN, S.KOM", "nip": "19960623 202521 1 089", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "MHD CHAIRIL AMRI LUBIS, S.E.", "nip": "19840404 202521 1 128", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "MHD FACHRI NUGROHO, S.Kom", "nip": "19970620 202521 1 077", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "MILDA ADINI", "nip": "19910528 202521 2 082", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "MUHAMMAD AIDIL PUTRA, S.H.", "nip": "19850701 202521 1 122", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "MUHAMMAD BUDI SYAHPUTRA PRATAMA", "nip": "20010707 202521 1 021", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "MUHAMMAD BUSTOMI ADNANI, S.H.", "nip": "19900102 202521 1 107", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "MUHAMMAD DIRAL", "nip": "20010126 202521 1 023", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "MUHAMMAD REZA ISKANDAR LUBIS,", "nip": "19951224 202521 1 067", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "MUHAMMAD RIDHO AULIA SAGALA, S.Kom.", "nip": "19920406 202521 1 086", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "MUHAMMAD ULUL AZMI, S.E.", "nip": "19950523 202521 1 089", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "NANANG BUKHORI", "nip": "19860924 202521 1 088", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "NAOMY LIDYA, S.S.", "nip": "19860709 202521 2 060", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "NOOR ASIFA AINI, S.E.", "nip": "19950701 202521 2 102", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "NOVA HERLINA SUGIATI SINAGA, A.Md.", "nip": "19850930 202521 2 049", "jabatan": "PENGELOLA LAYANAN OPERASIONAL"}, {"nama": "NOVIANTY NELDA KULLIT", "nip": "19790226 202521 2 026", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "NUR HABIBAH SYAH PUTRI, S.Sos.", "nip": "19951210 202521 2 085", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "NUR'AINUN", "nip": "19950320 202521 2 097", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "NURSALLIYANA RITONGA, S.E.", "nip": "19930920 202521 2 110", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "NURUL HAFIZAH RANGKUTI, S.E.", "nip": "19950517 202521 2 087", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "PAUSAN, S.A.P", "nip": "19950213 202521 1 070", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "PINAYUNGAN SIREGAR, S.Pd", "nip": "19931202 202521 1 070", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "PUSPA DUMASARI SIREGAR, S.P.", "nip": "19960526 202521 2 087", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "PUTRI MAULINA SARI LUBIS, S.Pd.", "nip": "19940105 202521 2 112", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "RAFIKA RAHMI", "nip": "19940730 202521 2 081", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "RAHMADSYAH KURNIA ARAFAH", "nip": "19820920 202521 1 083", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "RAJA SYAFRIZAL NASUTION, S.M.", "nip": "19901009 202521 1 097", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "RAJA TAMBUNAN", "nip": "19900525 202521 1 124", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "RANDY FAISAL", "nip": "19900820 202521 1 100", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "RENDI HARTONO, S.P.", "nip": "19861023 202521 1 081", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "RESMON KRISTIANTA, A.Md", "nip": "19940601 202521 1 095", "jabatan": "PENGELOLA LAYANAN OPERASIONAL"}, {"nama": "REZA SWANDI", "nip": "19950920 202521 1 063", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "RIFKI HAWARI", "nip": "19890420 202521 1 124", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "RINI ADITYA UTAMI BR TARIGAN, S.Pd.", "nip": "19900323 202521 2 137", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "RISKI DWI ARDIANSYAH PURBA", "nip": "19950509 202521 1 084", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "RIZKI HANANDA", "nip": "19960603 202521 1 096", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "RONI HENDRA YOSHUA RAWO TANJUNG, S.Kom", "nip": "19840817 202521 1 187", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ROZI ROZALIA", "nip": "19950623 202521 2 076", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "RYAN ANDIKA, S.Kom.", "nip": "19890227 202521 1 078", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SAMUEL ADRIAN SINAGA, S.E.", "nip": "19960121 202521 1 078", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SHARAH DHIBA HARAHAP, S.S.", "nip": "19970103 202521 2 062", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SITI DEVI PERMATA SARI LUBIS, S.Pi.", "nip": "19920819 202521 2 112", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SOFYAN DWI CANDRA, S.T.", "nip": "19920206 202521 1 110", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SRI FADILAH ANUGRAH, S.P.", "nip": "19960325 202521 2 090", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SRI WAHYUNI, S.E", "nip": "19920729 202521 2 100", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SURYA BHAKTI NASUTION, S.Sos", "nip": "19880302 202521 1 073", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "SYAHFITRI NUR HARAHAP, S.Sos.I.", "nip": "19930402 202521 2 097", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "ULFA AISYAH, SKM", "nip": "19931129 2025212 095", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "VERONIKA SIMBOLON, A.Md.", "nip": "19870926 202521 2 068", "jabatan": "PENGELOLA LAYANAN OPERASIONAL"}, {"nama": "WINDI TRI WAHYUNI, S.E", "nip": "19810904 202521 2 037", "jabatan": "PENATA LAYANAN OPERASIONAL"}, {"nama": "YOLANDA", "nip": "19970710 202521 2 087", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "YUDIANSYAH FAIS PANE", "nip": "19940104 202521 1 071", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}, {"nama": "ZAKARIA YAHYA NASUTION", "nip": "19971123 202521 1 064", "jabatan": "OPERATOR LAYANAN OPERASIONAL"}]};
+
+    let pegawaiCount = 0;
+
+    function addDasar() {
+        const div = document.createElement('div');
+        div.className = 'dynamic-item';
+        div.innerHTML = `<textarea class="input-dasar" placeholder="Masukkan Dasar Pelaksanaan SPT..."></textarea>
+                         <button class="btn-remove" onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('containerDasar').appendChild(div);
+    }
+    
+    function loadTemplateDasar() {
+        const templates = [
+            "Peraturan Daerah Provinsi Sumatera Utara Nomor 1 Tahun 2026 tanggal 19 Januari 2026 tentang Anggaran Pendapatan dan Belanja Daerah Provinsi Sumatera Utara Tahun Anggaran 2026",
+            "Peraturan Gubernur Sumatera Utara Nomor 3 Tahun 2026 tanggal 19 Januari 2026 tentang Penjabaran Anggaran Pendapatan dan Belanja Daerah Provinsi Sumatera Utara Tahun Anggaran 2026",
+            "Peraturan Gubernur Sumatera Utara Nomor 8 Tahun 2025 tentang Perubahan atas Peraturan Gubernur Sumatera Utara Nomor 1 Tahun 2024 tentang Petunjuk Teknis Pelaksanaan Perjalanan Dinas Dalam Negeri dan Luar Negeri",
+            "Dokumen Pelaksanaan Anggaran Satuan Kerja Perangkat Daerah Badan Penanggulangan Bencana Daerah Provinsi Sumatera Utara Tahun Anggaran 2026 Nomor DPA/A.1/1.05.0.00.0.00.02.0000/001/2026"
+        ];
+        
+        const container = document.getElementById('containerDasar');
+        const existing = document.querySelectorAll('.input-dasar');
+        
+        if (existing.length === 1 && existing[0].value.trim() === "") {
+            container.innerHTML = '';
+        }
+
+        templates.forEach(teks => {
+            const div = document.createElement('div');
+            div.className = 'dynamic-item';
+            div.innerHTML = `<textarea class="input-dasar" required>${teks}</textarea>
+                             <button class="btn-remove" onclick="this.parentElement.remove()">X</button>`;
+            container.appendChild(div);
+        });
+    }
+
+    function addUntuk() {
+        const div = document.createElement('div');
+        div.className = 'dynamic-item';
+        div.innerHTML = `<textarea class="input-untuk" placeholder="Masukkan tujuan perjalanan..."></textarea>
+                         <button class="btn-remove" onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('containerUntuk').appendChild(div);
+    }
+
+    function addPegawai() {
+        pegawaiCount++;
+        const id = pegawaiCount;
+        const div = document.createElement('div');
+        div.className = 'pegawai-card dynamic-item data-pegawai-row';
+        div.id = `pegawai-${id}`;
+        
+        div.innerHTML = `
+            <div style="flex-grow: 1;">
+                <div class="grid-2">
+                    <div>
+                        <label style="font-size:12px;">Status Pegawai:</label>
+                        <select onchange="updateOpsiNama(${id}, this.value)">
+                            <option value="">-- Pilih Status --</option>
+                            <option value="asn">ASN</option>
+                            <option value="pppk">PPPK Paruh Waktu</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px;">Pilih Nama:</label>
+                        <select id="nama-${id}" class="val-nama" onchange="isiOtomatis(${id}, this.value)" disabled>
+                            <option value="">-- Pilih Status Dulu --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2" id="gridDetail-${id}">
+                    <div id="wrapPangkat-${id}">
+                        <label style="font-size:12px;">Pangkat/Gol:</label>
+                        <input type="text" id="pangkat-${id}" class="val-pangkat" readonly style="background-color: #e9ecef;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px;">NIP:</label>
+                        <input type="text" id="nip-${id}" class="val-nip" readonly style="background-color: #e9ecef;">
+                    </div>
+                    <div class="col-span-2">
+                        <label style="font-size:12px;">Jabatan:</label>
+                        <input type="text" id="jabatan-${id}" class="val-jabatan" readonly style="background-color: #e9ecef;">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-remove" onclick="document.getElementById('pegawai-${id}').remove()">Hapus</button>
+        `;
+        document.getElementById('containerPegawai').appendChild(div);
+    }
+
+    function updateOpsiNama(id, status) {
+        const selectNama = document.getElementById(`nama-${id}`);
+        const wrapPangkat = document.getElementById(`wrapPangkat-${id}`);
+        const gridDetail = document.getElementById(`gridDetail-${id}`);
+        
+        document.getElementById(`pangkat-${id}`).value = "";
+        document.getElementById(`nip-${id}`).value = "";
+        document.getElementById(`jabatan-${id}`).value = "";
+        selectNama.innerHTML = '<option value="">-- Pilih Status --</option>';
+
+        if (!status) { selectNama.disabled = true; return; }
+        
+        selectNama.disabled = false;
+        selectNama.setAttribute('data-status', status);
+
+        if (status === 'pppk') {
+            wrapPangkat.classList.add('hidden');
+            gridDetail.classList.remove('grid-2');
+            gridDetail.classList.add('grid-1');
+        } else {
+            wrapPangkat.classList.remove('hidden');
+            gridDetail.classList.remove('grid-1');
+            gridDetail.classList.add('grid-2');
+        }
+
+        dataPegawai[status].forEach((pegawai, index) => {
+            selectNama.innerHTML += `<option value="${index}">${pegawai.nama}</option>`;
+        });
+    }
+
+    function isiOtomatis(id, index) {
+        if (index === "") return;
+        const status = document.getElementById(`nama-${id}`).getAttribute('data-status');
+        const pegawai = dataPegawai[status][index];
+
+        document.getElementById(`nip-${id}`).value = pegawai.nip;
+        document.getElementById(`jabatan-${id}`).value = pegawai.jabatan;
+        
+        if (status === 'asn') {
+            document.getElementById(`pangkat-${id}`).value = pegawai.pangkat;
+        } else {
+            document.getElementById(`pangkat-${id}`).value = "";
+        }
+    }
+
+    const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    function prosesRentangTanggal() {
+        const tglMulaiVal = document.getElementById('tglMulai').value;
+        const tglSelesaiVal = document.getElementById('tglSelesai').value;
+        const output = document.getElementById('hasilHari');
+
+        if (!tglMulaiVal) {
+            output.value = ""; return;
+        }
+
+        const dStart = new Date(tglMulaiVal);
+        const hariMulai = namaHari[dStart.getDay()];
+        const tglMulaiNum = dStart.getDate();
+        const bulanMulaiNum = dStart.getMonth();
+        const tahunMulai = dStart.getFullYear();
+
+        if (!tglSelesaiVal || tglMulaiVal === tglSelesaiVal) {
+            output.value = `${hariMulai} tanggal ${tglMulaiNum} ${namaBulan[bulanMulaiNum]} ${tahunMulai}`;
+            return;
+        }
+
+        const dEnd = new Date(tglSelesaiVal);
+        const hariSelesai = namaHari[dEnd.getDay()];
+        const tglSelesaiNum = dEnd.getDate();
+        const bulanSelesaiNum = dEnd.getMonth();
+        const tahunSelesai = dEnd.getFullYear();
+
+        if (bulanMulaiNum === bulanSelesaiNum && tahunMulai === tahunSelesai) {
+            output.value = `${hariMulai} s/d ${hariSelesai} tanggal ${tglMulaiNum} s/d ${tglSelesaiNum} ${namaBulan[bulanMulaiNum]} ${tahunMulai}`;
+        } else {
+            output.value = `${hariMulai} s/d ${hariSelesai} tanggal ${tglMulaiNum} ${namaBulan[bulanMulaiNum]} s/d ${tglSelesaiNum} ${namaBulan[bulanSelesaiNum]} ${tahunSelesai}`;
+        }
+    }
+    
+    function toTitleCase(str) {
+        return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+    }
+
+    function getDocHeaderContent() {
+        return `
+            <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+                <tr>
+                    <td width="90" style="vertical-align: middle; padding-left: 6mm;">
+                        <img src="https://drive.google.com/uc?export=view&id=1rBeFBwDyPsku9BaLKBy3zXMxiFHj88tI" width="70" crossorigin="anonymous">
+                    </td>
+                    <td style="vertical-align: middle; text-align: center; padding-right: 35px;">
+                        <p style="font-family: Arial, sans-serif; font-weight: bold; font-size: 14pt; margin: 0; text-align: center; padding-left: 17.5mm;">PEMERINTAH PROVINSI SUMATERA UTARA</p>
+                        <p style="font-family: Arial, sans-serif; font-weight: bold; font-size: 16pt; margin: 0; text-align: center; padding-left: 17.5mm;">BADAN PENANGGULANGAN BENCANA DAERAH</p>
+                        <p style="font-family: Arial, sans-serif; font-weight: normal; font-size: 10pt; margin: 0; text-align: center; padding-left: 17.5mm;">Jalan Binjai Km 10,3 Nomor 8 &#8211; Telepon (061) 8468469 Fax. (061) 8468015</p>
+                        <p style="font-family: Arial, sans-serif; font-weight: normal; font-size: 10pt; margin: 0; text-align: center; padding-left: 17.5mm;">Medan</p>
+                    </td>
+                </tr>
+            </table>
+            <p style="margin-top: 5pt; margin-bottom: 15pt; border-top: 2.25pt solid black; padding-top: 1pt; font-size: 1pt; line-height: 1pt;">&nbsp;</p>
+        `;
+    }
+
+    function getDocHTMLContent() {
+        let lokasi = document.getElementById('lokasiTujuan').value || '....................';
+        let hasilHari = document.getElementById('hasilHari').value || '....................';
+        
+        let listDasar = "";
+        let elemenDasar = document.querySelectorAll('.input-dasar');
+        let validDasar = [];
+        
+        elemenDasar.forEach((el) => {
+            if(el.value.trim() !== "") validDasar.push(el.value.trim());
+        });
+
+        validDasar.forEach((val, index) => {
+            let tandaBaca = (index === validDasar.length - 1) ? "." : ";";
+            listDasar += `
+                <tr>
+                    <td width="30" valign="top" style="text-align: right;">${String.fromCharCode(97 + index)}.</td>
+                    <td width="10" valign="top"></td>
+                    <td valign="top" style="text-align: justify;">${val}${tandaBaca}</td>
+                </tr>
+            `;
+        });
+
+        let listPegawai = "";
+        let barisPegawai = document.querySelectorAll('.data-pegawai-row');
+        barisPegawai.forEach((row, index) => {
+            let selectNm = row.querySelector('.val-nama');
+            let status = selectNm.getAttribute('data-status');
+            let nama = selectNm.selectedIndex > 0 ? selectNm.options[selectNm.selectedIndex].text : '';
+            let pkt = row.querySelector('.val-pangkat').value;
+            let nip = row.querySelector('.val-nip').value;
+            let jbt = row.querySelector('.val-jabatan').value;
+            
+            if (nama) {
+                if (status === 'pppk') {
+                    let parts = nama.split(',');
+                    let namaDepan = toTitleCase(parts[0]);
+                    nama = parts.length > 1 ? namaDepan + ',' + parts.slice(1).join(',') : namaDepan;
+                    jbt = toTitleCase(jbt);
+                }
+
+                let pIndex = index + 1;
+                listPegawai += `
+                    <tr>
+                        <td width="30" valign="top" style="text-align: right;">${pIndex}.</td>
+                        <td width="110" valign="top">Nama</td>
+                        <td width="10" valign="top">:</td>
+                        <td valign="top" style="text-align: justify;">${nama}</td>
+                    </tr>
+                `;
+                if(pkt) {
+                    listPegawai += `
+                        <tr>
+                            <td></td>
+                            <td valign="top">Pangkat/Gol</td>
+                            <td valign="top">:</td>
+                            <td valign="top" style="text-align: justify;">${pkt}</td>
+                        </tr>
+                    `;
+                }
+                listPegawai += `
+                    <tr>
+                        <td></td>
+                        <td valign="top">NIP</td>
+                        <td valign="top">:</td>
+                        <td valign="top" style="text-align: justify;">${nip}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td valign="top">Jabatan</td>
+                        <td valign="top">:</td>
+                        <td valign="top" style="text-align: justify;">${jbt}</td>
+                    </tr>
+                    <tr><td colspan="4"><br></td></tr>
+                `;
+            }
+        });
+
+        let listUntuk = "";
+        let elemenUntuk = document.querySelectorAll('.input-untuk');
+        let unIdx = 1;
+        elemenUntuk.forEach((el) => {
+            if(el.value) {
+                listUntuk += `
+                    <tr>
+                        <td width="30" valign="top" style="text-align: right;">${unIdx}.</td>
+                        <td width="10" valign="top"></td>
+                        <td valign="top" style="text-align: justify;">${el.value};</td>
+                    </tr>
+                `;
+                unIdx++;
+            }
+        });
+        
+        listUntuk += `
+            <tr>
+                <td width="30" valign="top" style="text-align: right;">${unIdx}.</td>
+                <td width="10" valign="top"></td>
+                <td valign="top" style="text-align: justify;">Yang dikunjungi ${lokasi};</td>
+            </tr>
+            <tr>
+                <td width="30" valign="top" style="text-align: right;">${unIdx+1}.</td>
+                <td width="10" valign="top"></td>
+                <td valign="top" style="text-align: justify;">Pada ${hasilHari};</td>
+            </tr>
+            <tr>
+                <td width="30" valign="top" style="text-align: right;">${unIdx+2}.</td>
+                <td width="10" valign="top"></td>
+                <td valign="top" style="text-align: justify;">Setelah melaksanakan tugas agar membuat laporan kepada Kepala Badan Penanggulangan Bencana Daerah Provinsi Sumatera Utara.</td>
+            </tr>
+        `;
+
+        return `
+            <p class="center" style="font-size:12pt; font-weight: normal;">SURAT TUGAS</p>
+            <p class="center">NOMOR : \${nomor_naskah}</p>
+            <br>
+            <table>
+                <tr>
+                    <td width="70" valign="top">Dasar</td>
+                    <td width="10" valign="top">:</td>
+                    <td valign="top"><table>${listDasar}</table></td>
+                </tr>
+            </table>
+            <br>
+            <p class="center">MEMERINTAHKAN :</p>
+            <br>
+            <table>
+                <tr>
+                    <td width="70" valign="top">Kepada</td>
+                    <td width="10" valign="top">:</td>
+                    <td valign="top"><table>${listPegawai}</table></td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td width="70" valign="top">Untuk</td>
+                    <td width="10" valign="top">:</td>
+                    <td valign="top"><table>${listUntuk}</table></td>
+                </tr>
+            </table>
+            <p style="margin-bottom: 8pt; text-align: justify;">Demikian surat perintah tugas ini diperbuat untuk dipergunakan sebagaimana semestinya.</p>
+            <table width="100%">
+                <tr>
+                    <td width="55%"></td>
+                    <td width="45%" style="text-align: left;">
+                        <p>Medan, \${tanggal_naskah}</p>
+                        <p>Kepala Badan Penanggulangan</p>
+                        <p style="margin-bottom: 2pt;">Bencana Daerah</p>
+                        <p style="margin-bottom: 2pt;">\${ttd_pengirim}</p>
+                        <p>\${nama_pengirim}</p>
+                        <p>Pembina Utama Madya/IV.d</p>
+                        <p>NIP. \${nip_pengirim}</p>
+                    </td>
+                </tr>
+            </table>
+        `;
+    }
+
+    function generateDoc() {
+        // Logika Penamaan File Dinamis
+        let namaPegawaiPertama = "Pegawai";
+        let barisPegawai = document.querySelectorAll('.data-pegawai-row');
+        let dkk = barisPegawai.length > 1 ? ", dkk" : "";
+        
+        if (barisPegawai.length > 0) {
+            let selectNm = barisPegawai[0].querySelector('.val-nama');
+            if (selectNm && selectNm.selectedIndex > 0) {
+                namaPegawaiPertama = selectNm.options[selectNm.selectedIndex].text;
+                // Mengambil nama depan saja sebelum koma gelar (opsional, jika gelar ada)
+                namaPegawaiPertama = namaPegawaiPertama.split(',')[0];
+                namaPegawaiPertama = toTitleCase(namaPegawaiPertama);
+            }
+        }
+
+        let tujuanSingkat = document.getElementById('tujuanSingkatFile').value.trim();
+        if (!tujuanSingkat) tujuanSingkat = "Tujuan";
+        
+        let namaFileFix = `SPT. ${namaPegawaiPertama}${dkk} - ke ${tujuanSingkat}.doc`;
+
+        let headerStr = getDocHeaderContent();
+        let contentStr = getDocHTMLContent();
+        
+        let content = `
+            <html xmlns:v="urn:schemas-microsoft-com:vml"
+                  xmlns:o="urn:schemas-microsoft-com:office:office"
+                  xmlns:w="urn:schemas-microsoft-com:office:word"
+                  xmlns:m="http://schemas.microsoft.com/office/2004/12/omml"
+                  xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+            <meta charset='utf-8'>
+            <title>Surat Tugas</title>
+            <style>
+                @page WordSection1 {
+                    size: 595.3pt 841.9pt; 
+                    margin: 15mm 56.7pt 42.5pt 56.7pt;
+                    mso-header-margin: 10mm;
+                    mso-footer-margin: 13mm;
+                    mso-title-page: yes;
+                    mso-first-header: h1;
+                }
+                div.WordSection1 { page: WordSection1; }
+                body { font-family: 'Arial', sans-serif; font-size: 12pt; line-height: 1.15; text-align: justify; }
+                p { margin: 0; padding: 0; line-height: 1.15; text-align: justify; font-size: 12pt; }
+                table { width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 12pt; line-height: 1.15; }
+                td { padding: 2px; vertical-align: top; font-size: 12pt; }
+                .center { text-align: center; }
+                
+                table#hrdftrtbl {
+                    margin: 0in 0in 0in 900in;
+                    width: 1px;
+                    height: 1px;
+                    overflow: hidden;
+                }
+            </style>
+            </head>
+            <body>
+                <div class="WordSection1">
+                    ${contentStr}
+                </div>
+                
+                <!-- Deklarasi Header Khusus MS Word -->
+                <table id="hrdftrtbl" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td>
+                            <div style="mso-element:header" id="h1">
+                                ${headerStr}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `;
+
+        let blob = new Blob(['\ufeff', content], { type: 'application/msword;charset=utf-8' });
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement('a');
+        link.href = url;
+        link.download = namaFileFix;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    window.onload = function() { 
+        initApp();
+        addPegawai(); 
+    };
+</script>
+</body>
+</html>
