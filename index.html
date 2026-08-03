@@ -19,6 +19,7 @@
             background-color: #f4f5f7;
             padding: 20px;
             margin: 0;
+            overflow-x: hidden;
         }
         
         /* --- LOGIN & MODAL STYLES --- */
@@ -27,12 +28,13 @@
             justify-content: center;
             align-items: center;
             height: 90vh;
+            transition: opacity 0.4s ease, transform 0.4s ease; /* Transisi Fade */
         }
         .login-box {
             background: #fff;
             padding: 40px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 400px;
             text-align: center;
@@ -45,6 +47,7 @@
             margin-bottom: 15px;
             text-align: left;
         }
+        
         .btn-submit {
             background-color: var(--primary);
             color: white;
@@ -56,11 +59,34 @@
             font-size: 15px;
             font-weight: bold;
             margin-top: 10px;
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
-        .btn-submit:hover {
+        .btn-submit:hover:not(:disabled) {
             background-color: var(--primary-hover);
         }
-        
+        .btn-submit:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        /* Animasi Spinner Loader saat klik login */
+        .loader-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Navbar / Header Profil */
         .navbar {
             display: flex;
@@ -89,7 +115,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: background-color 0.2s ease;
         }
+        .profile-btn:hover { background-color: #f1f0fd; }
+        
         .dropdown-content {
             display: none;
             position: absolute;
@@ -126,6 +155,11 @@
             background-color: rgba(0,0,0,0.5);
             justify-content: center;
             align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         .modal-content {
             background-color: #fefefe;
@@ -144,6 +178,12 @@
         .close-btn:hover { color: black; }
 
         /* --- APP STYLES --- */
+        #appPage {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
         .container {
             background: #fff;
             max-width: 1000px;
@@ -228,13 +268,15 @@
             <label>Password</label>
             <input type="password" id="loginPassword" placeholder="Masukkan Password">
         </div>
-        <button class="btn-submit" onclick="prosesLogin()">Masuk</button>
+        <button class="btn-submit" onclick="prosesLogin()" id="btnMasuk">
+            <span id="btnText">Masuk</span>
+        </button>
         <p id="loginError" style="color:red; font-size:13px; margin-top:10px; display:none;">Username atau Password salah!</p>
     </div>
 </div>
 
 <!-- HALAMAN APLIKASI UTAMA -->
-<div class="container" id="appPage" style="display: none;">
+<div class="container" id="appPage">
     <div class="navbar">
         <h2>Aplikasi Pengisi Data Surat Tugas</h2>
         <div class="profile-menu">
@@ -372,6 +414,7 @@
     let currentUser = null;
 
     function initApp() {
+        // Init Database
         let storedUsers = localStorage.getItem('bpbdUsers');
         if (!storedUsers) {
             usersDB = defaultAccounts;
@@ -380,23 +423,49 @@
             usersDB = JSON.parse(storedUsers);
         }
 
+        // Cek Session
         let loggedIn = sessionStorage.getItem('bpbdSession');
         if (loggedIn && usersDB[loggedIn]) {
             currentUser = loggedIn;
-            tampilkanAplikasi();
+            tampilkanAplikasiInstan();
         }
+
+        // --- TAMBAHAN EVENT ENTER UNTUK FORM LOGIN ---
+        document.getElementById('loginUsername').addEventListener("keypress", function(event) {
+            if (event.key === "Enter") { event.preventDefault(); prosesLogin(); }
+        });
+        document.getElementById('loginPassword').addEventListener("keypress", function(event) {
+            if (event.key === "Enter") { event.preventDefault(); prosesLogin(); }
+        });
     }
 
     function prosesLogin() {
         let u = document.getElementById('loginUsername').value.trim();
         let p = document.getElementById('loginPassword').value;
         let err = document.getElementById('loginError');
+        let btnText = document.getElementById('btnText');
+        let btn = document.getElementById('btnMasuk');
         
         if (usersDB[u] && usersDB[u].pass === p) {
-            sessionStorage.setItem('bpbdSession', u);
-            currentUser = u;
             err.style.display = 'none';
-            tampilkanAplikasi();
+            
+            // Terapkan Efek Animasi & Loading di Tombol
+            btn.disabled = true;
+            btnText.innerHTML = `<span class="loader-spinner"></span> Memuat...`;
+
+            // Timeout simulasi autentikasi & transisi
+            setTimeout(() => {
+                sessionStorage.setItem('bpbdSession', u);
+                currentUser = u;
+                tampilkanAplikasi();
+                
+                // Kembalikan tombol ke keadaan semula saat diam-diam hilang
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btnText.innerHTML = "Masuk";
+                }, 500);
+            }, 1000); // 1 detik loading animasi
+            
         } else {
             err.style.display = 'block';
         }
@@ -407,13 +476,48 @@
         currentUser = null;
         document.getElementById('loginUsername').value = "";
         document.getElementById('loginPassword').value = "";
-        document.getElementById('appPage').style.display = 'none';
-        document.getElementById('loginPage').style.display = 'flex';
+        
+        // Transisi Keluar
+        let app = document.getElementById('appPage');
+        app.style.opacity = '0';
+        app.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            app.style.display = 'none';
+            let login = document.getElementById('loginPage');
+            login.style.display = 'flex';
+            setTimeout(() => {
+                login.style.opacity = '1';
+                login.style.transform = 'translateY(0)';
+            }, 50);
+        }, 500); // Durasi fade-out
     }
 
     function tampilkanAplikasi() {
+        let login = document.getElementById('loginPage');
+        login.style.opacity = '0';
+        login.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            login.style.display = 'none';
+            let app = document.getElementById('appPage');
+            app.style.display = 'block';
+            
+            setTimeout(() => {
+                app.style.opacity = '1';
+                app.style.transform = 'translateY(0)';
+            }, 50); // delay render
+        }, 400); // Tunggu sampai login menghilang
+
+        document.getElementById('displayName').innerText = usersDB[currentUser].name;
+    }
+
+    function tampilkanAplikasiInstan() {
         document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('appPage').style.display = 'block';
+        let app = document.getElementById('appPage');
+        app.style.display = 'block';
+        app.style.opacity = '1';
+        app.style.transform = 'translateY(0)';
         document.getElementById('displayName').innerText = usersDB[currentUser].name;
     }
 
@@ -812,7 +916,6 @@
     }
 
     function generateDoc() {
-        // Logika Penamaan File Dinamis
         let namaPegawaiPertama = "Pegawai";
         let barisPegawai = document.querySelectorAll('.data-pegawai-row');
         let dkk = barisPegawai.length > 1 ? ", dkk" : "";
@@ -821,7 +924,6 @@
             let selectNm = barisPegawai[0].querySelector('.val-nama');
             if (selectNm && selectNm.selectedIndex > 0) {
                 namaPegawaiPertama = selectNm.options[selectNm.selectedIndex].text;
-                // Mengambil nama depan saja sebelum koma gelar (opsional, jika gelar ada)
                 namaPegawaiPertama = namaPegawaiPertama.split(',')[0];
                 namaPegawaiPertama = toTitleCase(namaPegawaiPertama);
             }
