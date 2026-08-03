@@ -260,19 +260,15 @@
 <div id="loginPage">
     <div class="login-box">
         <h3>🔑 Login BPBD SPT</h3>
-        <!-- PENGGUNAAN TAG FORM AGAR BROWSER MENYIMPAN AUTOFILL -->
         <form id="loginForm" onsubmit="handleLoginSubmit(event)">
             <div class="form-group">
                 <label>Username (NIP)</label>
-                <!-- Tambah atribut name dan autocomplete -->
                 <input type="text" id="loginUsername" name="username" autocomplete="username" placeholder="Masukkan NIP" required>
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <!-- Tambah atribut name dan autocomplete -->
                 <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="Masukkan Password" required>
             </div>
-            <!-- Ubah menjadi type="submit" -->
             <button type="submit" class="btn-submit" id="btnMasuk">
                 <span id="btnText">Masuk</span>
             </button>
@@ -301,7 +297,6 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModalPassword()">&times;</span>
             <h3 style="margin-top:0; color:var(--primary);">Ganti Password</h3>
-            <!-- Form agar browser bisa memperbarui password di autofill -->
             <form onsubmit="handleUbahPassword(event)">
                 <div class="form-group">
                     <label>Password Lama</label>
@@ -423,7 +418,6 @@
     let currentUser = null;
 
     function initApp() {
-        // Init Database
         let storedUsers = localStorage.getItem('bpbdUsers');
         if (!storedUsers) {
             usersDB = defaultAccounts;
@@ -432,7 +426,6 @@
             usersDB = JSON.parse(storedUsers);
         }
 
-        // Cek Session
         let loggedIn = sessionStorage.getItem('bpbdSession');
         if (loggedIn && usersDB[loggedIn]) {
             currentUser = loggedIn;
@@ -440,9 +433,8 @@
         }
     }
 
-    // Fungsi Submit dipanggil saat tombol submit form ditekan atau tombol enter di dalam form
     function handleLoginSubmit(event) {
-        event.preventDefault(); // Mencegah browser me-reload halaman
+        event.preventDefault();
         
         let u = document.getElementById('loginUsername').value.trim();
         let p = document.getElementById('loginPassword').value;
@@ -452,23 +444,19 @@
         
         if (usersDB[u] && usersDB[u].pass === p) {
             err.style.display = 'none';
-            
-            // Terapkan Efek Animasi & Loading di Tombol
             btn.disabled = true;
             btnText.innerHTML = `<span class="loader-spinner"></span> Memuat...`;
 
-            // Timeout simulasi autentikasi & transisi
             setTimeout(() => {
                 sessionStorage.setItem('bpbdSession', u);
                 currentUser = u;
                 tampilkanAplikasi();
                 
-                // Kembalikan tombol ke keadaan semula
                 setTimeout(() => {
                     btn.disabled = false;
                     btnText.innerHTML = "Masuk";
                 }, 500);
-            }, 1000); // 1 detik loading animasi
+            }, 1000);
             
         } else {
             err.style.display = 'block';
@@ -481,7 +469,6 @@
         document.getElementById('loginUsername').value = "";
         document.getElementById('loginPassword').value = "";
         
-        // Transisi Keluar
         let app = document.getElementById('appPage');
         app.style.opacity = '0';
         app.style.transform = 'translateY(10px)';
@@ -494,7 +481,7 @@
                 login.style.opacity = '1';
                 login.style.transform = 'translateY(0)';
             }, 50);
-        }, 500); // Durasi fade-out
+        }, 500);
     }
 
     function tampilkanAplikasi() {
@@ -510,8 +497,8 @@
             setTimeout(() => {
                 app.style.opacity = '1';
                 app.style.transform = 'translateY(0)';
-            }, 50); // delay render
-        }, 400); // Tunggu sampai login menghilang
+            }, 50);
+        }, 400);
 
         document.getElementById('displayName').innerText = usersDB[currentUser].name;
     }
@@ -537,9 +524,8 @@
         document.getElementById('modalPassword').style.display = 'none';
     }
 
-    // Fungsi Form Submit Ubah Password
     function handleUbahPassword(event) {
-        event.preventDefault(); // Mencegah form me-reload
+        event.preventDefault();
 
         let old = document.getElementById('oldPassword').value;
         let newP = document.getElementById('newPassword').value;
@@ -918,6 +904,7 @@
                         <p>NIP. \${nip_pengirim}</p>
                     </td>
                 </tr>
+            </table>
         `;
     }
 
@@ -967,13 +954,6 @@
                 table { width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 12pt; line-height: 1.15; }
                 td { padding: 2px; vertical-align: top; font-size: 12pt; }
                 .center { text-align: center; }
-                
-                table#hrdftrtbl {
-                    margin: 0in 0in 0in 900in;
-                    width: 1px;
-                    height: 1px;
-                    overflow: hidden;
-                }
             </style>
             </head>
             <body>
@@ -981,16 +961,10 @@
                     ${contentStr}
                 </div>
                 
-                <!-- Deklarasi Header Khusus MS Word -->
-                <table id="hrdftrtbl" border="0" cellspacing="0" cellpadding="0">
-                    <tr>
-                        <td>
-                            <div style="mso-element:header" id="h1">
-                                ${headerStr}
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+                <!-- Deklarasi Header Khusus MS Word (Tanpa Tabel Tersembunyi) -->
+                <div style="mso-element:header; position:absolute; left:-9999pt;" id="h1">
+                    ${headerStr}
+                </div>
             </body>
             </html>
         `;
